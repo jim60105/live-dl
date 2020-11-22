@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  livedl:
+    image: herowinb/live-dl:latest
+    restart: always
+    volumes:
+      - ../YoutubeRecording:/youtube-dl
+      - ./:/usr/src/app
+    ports:
+      - 8080:8080
+
+  jobber:
+    image: blacklabelops/jobber:docker
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../YoutubeRecording:/youtube-dl
+      - ./prune_dir.sh:/prune_dir.sh:ro
+    environment:
+      - JOB_NAME1=PruneOldFiles
+      - JOB_COMMAND1=/bin/bash /prune_dir.sh /youtube-dl 85
+      - JOB_TIME1=0 0 1 * * * #Exec per Day at UTC 01:00
+      - JOB_NOTIFY_ERR1=true
+      - JOB_NOTIFY_FAIL1=true
