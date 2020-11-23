@@ -1,53 +1,31 @@
-# [`youtube-dl-server`](https://github.com/manbearwiz/youtube-dl-server)
+# live-dl on Docker + 磁碟滿時自動清理錄影
+> 這是從屬於 [jim60105/docker-ReverseProxy](https://github.com/jim60105/docker-ReverseProxy) 的 live-dl 方案，必須在上述伺服器運行正常後再做
 
-Download files location (default): `/youtube-dl/`
+此方案可以監控Youtube頻道之公開直播並錄影，在磁碟錄滿後自動刪除影片(由舊的刪起)
 
-Web gui : `http://{{host}}:8080/youtube-dl`
+## 架構
+WWW\
+│\
+nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
+└ live-dl (直播錄影機，提供對外WebUI)\
+ 　└ Jobber (Cron) (定時檢查磁碟使用率，在高於設定之百分比時，自動由舊起刪除錄影) 
 
-# [`live-dl`](https://github.com/sparanoid/live-dl)
-
-Download files location (default): `/youtube-dl/VTuber Recordings`
-
-# Volume Map for Sysnology NAS Docker
-
-Download [config.example.yml](https://github.com/herowinb/live-dl/blob/master/config.example.yml) and rename to config.yml.
-
-<img src="https://i.imgur.com/MTATZ3K.png">
-
-Download [example.sh](https://github.com/herowinb/live-dl/blob/master/Auto/example.sh), edit, rename, put in to a folder Audo. Now you can startup `live-dl` to monitor and download upcoming live stream from your <strike>Waifu</strike> Vtuber.
-
-<img src="https://i.imgur.com/CuvMdPr.png">
-
-Use live-dl
-
-<img src="https://i.imgur.com/5uFLJtr.png">
-
-You can run this script in background (manualy):
-
-```shell
-# Start process
-nohup bash live-dl https://www.youtube.com/channel/UC1opHUrw8rvnsadT-iGp7Cg &>/tmp/live-dl-minatoaqua.log &
-
-# View processes
-ps aux | grep live-dl
-501 94552   964   0  9:38PM ttys009    0:00.06 bash live-dl https://www.youtube.com/channel/UC1opHUrw8rvnsadT-iGp7Cg
-501 94765   964   0  9:39PM ttys009    0:00.00 grep live-dl
-
-# Stop process
-kill 94552
+## 說明
+* 手動下載會儲存在主機的 `../YoutubeRecording/` 之下
+* 自動錄影會儲存在主機的 `../YoutubeRecording/VTuber Recordings` 之下
+* 請參考 `*.env_sample` 建立 `*.env`
+    * LETSENCRYPT_EMAIL=你的email
+    * HOST=WebUI網址
+    * DelPercentage=要執行刪除功能的磁碟使用百分比
+* 請編輯 `config.yml` 在map處建立名稱表，**此表用於自動錄播時的資料夾建立**
+    ```yml
+    - name: 久遠たま
+      youtube: https://www.youtube.com/channel/UCBC7vYFNQoGPupe5NxPG4Bw
+    ```
+* 請參考 `Auto/tama.sh` 建立要自動錄播的頻道，所有Auto下的檔案都會被執行
+```sh
+nohup /bin/bash ./live-dl {{Youtube URL}} &>/youtube-dl/logs/live-dl-{{Channel Name}}.$(date +%d%b%y-%H%M%S).log &
 ```
-# Docker Desktop for Windows Stable (Docker Desktop Community 2.4.0.0)
-
-Get [Docker install pack](https://www.docker.com/products/docker-desktop) and [WSL2 update](https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi).
-After install WSL2 and Docker, open CMD and type `docker pull herowinb/live-dl:latest` to get latest version from Docker Hub.
-
-Create 1 folder for download files. Download and unzip [source code](https://github.com/herowinb/live-dl/archive/master.zip) rename (or edit your config) `config.example.yml` to `config.yml`, edit `example.sh` in `Auto` folder to monitor and download live stream.
-
-Open Docker Dashboard, check downloaded images in LOCAL, click Run and add some Optional Settings
-
-<img src="https://i.imgur.com/lj0WQw7.png">
-
-<img src="https://i.imgur.com/lbFtmN3.png">
-
-CLI
-<img src="https://i.imgur.com/uVssi9f.png">
+* 正式發佈前移除 `.env` 中的 `LETSENCRYPT_TEST=true`\
+此設定為SSL測試證書\
+正式版有申請次數上限，務必在測試正常、最後上線前再移除

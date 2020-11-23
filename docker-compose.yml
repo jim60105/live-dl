@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   livedl:
-    image: herowinb/live-dl:latest
+    build: ./
     restart: always
     volumes:
       - ../YoutubeRecording:/youtube-dl
@@ -10,8 +10,8 @@ services:
     env_file:
       - .env
     environment:
-      # Comma-seperated
-      - VIRTUAL_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_HOST=${HOST}
+      - VIRTUAL_HOST=${HOST}
     networks:
       - proxy-tier
 
