@@ -11,8 +11,8 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
  　└ Jobber (Cron) (定時檢查磁碟使用率，在高於設定之百分比時，自動由舊起刪除錄影) 
 
 ## 說明
-* 手動下載會儲存在主機的 `../YoutubeRecording/` 之下
-* 自動錄影會儲存在主機的 `../YoutubeRecording/VTuber Recordings` 之下
+* 手動下載會儲存在主機的 `../YoutubeRecordings/` 之下
+* 自動錄影會儲存在主機的 `../YoutubeRecordings/AutoRecordings` 之下
 * 請參考 `*.env_sample` 建立 `*.env`
     * LETSENCRYPT_EMAIL=你的email
     * HOST=WebUI網址

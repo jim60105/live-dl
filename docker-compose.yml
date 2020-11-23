@@ -5,7 +5,7 @@ services:
     build: ./
     restart: always
     volumes:
-      - ../YoutubeRecording:/youtube-dl
+      - ../YoutubeRecordings:/youtube-dl
       - ./:/usr/src/app
     env_file:
       - .env
@@ -20,7 +20,7 @@ services:
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ../YoutubeRecording:/youtube-dl
+      - ../YoutubeRecordings:/youtube-dl
       - ./prune_dir.sh:/prune_dir.sh:ro
     env_file:
       - .env
