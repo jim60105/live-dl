@@ -13,6 +13,9 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
 ## 說明
 * 手動下載會儲存在主機的 `../YoutubeRecordings/` 之下
 * 自動錄影會儲存在主機的 `../YoutubeRecordings/AutoRecordings` 之下
+* Jobber會在每日的01:00 UTC檢查磁碟使用率，並由舊檔案刪起，直到磁碟使用率降到設定值(或直到沒有檔案)
+
+# 部屬
 * 請參考 `*.env_sample` 建立 `*.env`
     * LETSENCRYPT_EMAIL=你的email
     * HOST=WebUI網址
@@ -26,6 +29,7 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
 ```sh
 nohup /bin/bash ./live-dl {{Youtube URL}} &>/youtube-dl/logs/live-dl-{{Channel Name}}.$(date +%d%b%y-%H%M%S).log &
 ```
+* 給*.sh執行權限 `chmod +x *.sh`
 * 正式發佈前移除 `.env` 中的 `LETSENCRYPT_TEST=true`\
 此設定為SSL測試證書\
 正式版有申請次數上限，務必在測試正常、最後上線前再移除
