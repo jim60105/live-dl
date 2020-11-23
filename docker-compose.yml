@@ -7,13 +7,13 @@ services:
     volumes:
       - ../YoutubeRecording:/youtube-dl
       - ./:/usr/src/app
-    ports:
-      - 8080:8080
     env_file:
       - .env
     environment:
       # Comma-seperated
       - VIRTUAL_HOST=${LETSENCRYPT_HOST}
+    networks:
+      - proxy-tier
 
   jobber:
     image: blacklabelops/jobber:docker
@@ -30,3 +30,8 @@ services:
       - JOB_TIME1=0 0 1 * * * #Exec per Day at UTC 01:00
       - JOB_NOTIFY_ERR1=true
       - JOB_NOTIFY_FAIL1=true
+
+networks:
+  proxy-tier:
+    external: true
+    name: proxy-tier
