@@ -15,8 +15,7 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
  　└ Jobber (Cron) (定時檢查磁碟使用率，在高於設定之百分比時，自動由舊起刪除錄影) 
 
 ## 說明
-* 手動下載會儲存在主機的 `../YoutubeRecordings/` 之下
-* 自動錄影會儲存在主機的 `../YoutubeRecordings/AutoRecordings` 之下
+* 錄影和下載會儲存在主機的 `../YoutubeRecordings/` 之下
 * Jobber會在每日的01:00 UTC檢查磁碟使用率，並由舊檔案刪起，直到磁碟使用率降到設定值(或直到沒有檔案)
 
 # 部屬
