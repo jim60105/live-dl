@@ -1,7 +1,11 @@
 # live-dl on Docker + 磁碟滿時自動清理錄影
 > 這是從屬於 [jim60105/docker-ReverseProxy](https://github.com/jim60105/docker-ReverseProxy) 的 live-dl 方案，必須在上述伺服器運行正常後再做
 
-此方案可以監控Youtube頻道之公開直播並錄影，在磁碟錄滿後自動刪除影片(由舊的刪起)
+**請參考 [琳的備忘手札 Youtube直播錄影伺服器建置](https://blog.maki0419.com/2020/11/docker-youtube-dl-auto-recording-live-dl.html)**
+
+本文希望建置起能永久自動運作的Youtube直播備份機\
+此專案目標定位為「錄影備份」，在發生直播主事後砍檔/砍歌時，我才會到伺服器尋找備份\
+是故，本專案不著重在錄影後的檔案處理，而是在磁碟滿時做自動刪檔 
 
 ## 架構
 WWW\
@@ -29,7 +33,7 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
 ```sh
 nohup /bin/bash ./live-dl {{Youtube URL}} &>/youtube-dl/logs/live-dl-{{Channel Name}}.$(date +%d%b%y-%H%M%S).log &
 ```
-* 給*.sh執行權限 `chmod +x *.sh`
+* 給*.sh執行權限 `find ./ -type f -iname "*.sh" -exec chmod +x {} \;`
 * 正式發佈前移除 `.env` 中的 `LETSENCRYPT_TEST=true`\
 此設定為SSL測試證書\
 正式版有申請次數上限，務必在測試正常、最後上線前再移除
