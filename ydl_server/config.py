@@ -12,7 +12,11 @@ app_defaults = {
     'YDL_DB_PATH': '/youtube-dl/.ydl-metadata.db',
     'YDL_SUBTITLES_LANGUAGES': None,
     'YDL_DEBUG': False,
+    # Reference: https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/options.py
     'YDL_RAW_OPTIONS': {
-        'ignoreerrors': True
+        'ignoreerrors': True,
+        'embedthumbnail': True,
+        'addmetadata': True,
+        'cookiefile': '/cookies.txt'
         },
 }
