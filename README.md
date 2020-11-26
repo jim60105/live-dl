@@ -1,4 +1,25 @@
-# live-dl on Docker + 磁碟滿時自動清理錄影
+# live-dl on Docker
+若要單次執行而不部屬，可直接docker run
+
+例如
+```bash
+docker run --rm
+    -v D:\YoutubeDownload:/youtube-dl
+    -v D:\YoutubeDownload\cookies.txt:/cookies.txt
+    jim60105/live-dl https://www.youtube.com/watch?v=GDOQTShjTQs
+```
+
+此格式如下
+```bash
+docker run --rm
+    -v {{影片儲存資料夾}}:/youtube-dl
+    -v {{cookies file，用於登入驗證}}:/cookies.txt
+    jim60105/live-dl {{Youtube網址}}
+```
+將{{}}填入你的內容，若不需要登入驗證就不要bind cookies.txt\
+cookies file之相關說明請見文末
+
+# live-dl Service on Docker + 磁碟滿時自動清理錄影
 > 這是從屬於 [jim60105/docker-ReverseProxy](https://github.com/jim60105/docker-ReverseProxy) 的 live-dl 方案，必須在上述伺服器運行正常後再做
 
 **請參考 [琳的備忘手札 Youtube直播錄影伺服器建置](https://blog.maki0419.com/2020/11/docker-youtube-dl-auto-recording-live-dl.html)**
@@ -18,7 +39,7 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
 * 錄影和下載會儲存在主機的 `../YoutubeRecordings/` 之下
 * Jobber會在每日的01:00 UTC檢查磁碟使用率，並由舊檔案刪起，直到磁碟使用率降到設定值(或直到沒有檔案)
 
-# 部屬
+## 部屬
 * 請參考 `*.env_sample` 建立 `*.env`
     * LETSENCRYPT_EMAIL=你的email
     * HOST=WebUI網址
@@ -30,16 +51,16 @@ nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
     ```
 * 請參考 `Auto/tama.sh` 建立要自動錄播的頻道，所有Auto下的檔案都會被執行
 ```sh
-nohup /bin/bash ./live-dl {{Youtube URL}} &>/youtube-dl/logs/live-dl-{{Channel Name}}.$(date +%d%b%y-%H%M%S).log &
+nohup /bin/bash live-dl {{Youtube URL}} &>/youtube-dl/logs/live-dl-{{Channel Name}}.$(date +%d%b%y-%H%M%S).log &
 ```
 * 給*.sh執行權限 `find ./ -type f -iname "*.sh" -exec chmod +x {} \;`
 * 正式發佈前移除 `.env` 中的 `LETSENCRYPT_TEST=true`\
 此設定為SSL測試證書\
 正式版有申請次數上限，務必在測試正常、最後上線前再移除
 
-# 下載會員限定影片
+## 下載會員限定影片
 youtube-dl支援以cookie的方式登入，可以下載會限影片
-> youtube-dl的帳密功能**目前確定是壞的**，只能以cookies方式登入
+> youtube-dl的帳密功能**目前確定是壞的**，只能以cookies方式登入\
 > 此cookies file包含了你的Youtube登入授權，請務必妥善保管
 * 安裝瀏覧器擴充功能，以匯出Netscape HTTP Cookie File
     * Chrome: [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid)
@@ -47,4 +68,4 @@ youtube-dl支援以cookie的方式登入，可以下載會限影片
 * 瀏覧至Youtube網頁，登入你的帳號
 * 以擴充功能匯出`youtube.com`網域的所有cookie
 * 將匯出之cookie檔案重命名為`cookies.txt`
-* 取代專案目錄下的cookies.txt檔
+* 取代專案目錄下的cookies.txt檔 / 用於文首的volume bind
