@@ -320,7 +320,7 @@ function func_check_state() {
   fi
 
   # Passing useragent causes youtube to return the content to one line. Then grep died.
-  local _body=$(curl $address_param -s "$_url")
+  local _body=$(curl $address_param -b /cookies.txt -s "$_url")
 
   # Extract metadata from fetched page
   METADATA_CURL_RAW=`echo "$_body" | grep 'ytInitialPlayerResponse' | head -1`
