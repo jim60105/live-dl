@@ -107,11 +107,6 @@ while [ $# -gt 0 ]; do
   key="$1"
 
   case $key in
-    -e|--extension)
-      EXTENSION="$2"
-      shift # past argument
-      shift # past value
-      ;;
     -m|--mode)
       PARAM_MODE="$2"
       shift
@@ -444,7 +439,7 @@ function func_get_actual_video_url_of_live() {
     local regex='.+?<link rel="canonical" href="(.+)">.+'
 
     local address_param=$(func_gen_curl_address_param)
-    local _body=$(curl $address_param -s --compressed -H "User-Agent: $USER_AGENT" "$_url")
+    local _body=$(curl $address_param -s -H "User-Agent: $USER_AGENT" "$_url")
 
     [[ "$_body" =~ $regex ]]
     local VIDEO_URL="${BASH_REMATCH[1]%%\"*}"
@@ -483,10 +478,12 @@ function func_check_state() {
   if [ "$address_param" ]; then
     __info "using address: ${address_param##* }"
   fi
-  local _body=$(curl $address_param -s --compressed -H "User-Agent: $USER_AGENT" "$_url")
+
+  # Passing useragent causes youtube to return the content to one line. Then grep died.
+  local _body=$(curl $address_param -s "$_url")
 
   # Extract metadata from fetched page
-  METADATA_CURL_RAW=`echo "$_body" | grep '"ytInitialPlayerResponse"'`
+  METADATA_CURL_RAW=`echo "$_body" | grep 'ytInitialPlayerResponse' | head -1`
 
   # NOTE: Oct 25, 2020
   # Recently YouTube changes its page to returns `null` for `ytInitialPlayerResponse` when the
@@ -586,52 +583,6 @@ function func_check_state() {
     __info "$(__yellow "Not a valid page, something wrong with your internet connection?")"
   fi
 
-  # Old method:
-  # if echo "$_body" | grep -q 'ytplayer'; then
-
-  #   # Assume it's not a live streaming page
-  #   IS_LIVE_CONTENT="false"
-
-  #   # Actually there's an official way to check if the streamer is live or not[^1] using YouTube
-  #   # offical Data API, but it's costy that every search request costs you 100 credits. However
-  #   # you can try it online[^2] to see how it works.
-  #   #
-  #   # If you have accounts that registered YouTube developer program before 2017, and has more
-  #   # than 10 million credit quota, you can contact me t@sparanoid.com
-  #   #
-  #   # [1]: https://developers.google.com/youtube/v3/docs/search
-  #   # [2]: https://developers.google.com/youtube/v3/code_samples/code_snippets
-  #   if echo "$_body" | grep 'ytplayer' | grep -q '\\"isLive\\":true'; then
-  #     # Is live, break out of loop and continue to next step
-  #     IS_LIVE_CONTENT="true"
-  #     break
-  #   fi
-
-  #   # Also break out if the given URL is not a channel (probably a video or a playlist)
-  #   # This extra check could avoid downloading an upcoming stream when then "isLive" check above
-  #   # fails for some reason (like YouTube changes the `isLive` JSON key to something else)
-  #   if ! [ "$DL_TYPE" == "channel" ]; then
-  #     # This script now can also handle normal YouTube video, but there's no way to check if the
-  #     # given URL is a normal video or an upcoming stream, so we can just break out of the loop
-  #     # and fallback to youtube-dl to check whelter this URL is downloadable. And make sure it
-  #     # only execute once.
-  #     ONE_TIME="true"
-  #     break
-  #   fi
-
-  # else
-  #   __info "$(__yellow "Not a valid video page!")"
-  #   __info "You may get this warning due to internet interruption, continue running"
-
-  #   # NOTE: Although this is the natural logic to exit the program if we can't find specific
-  #   # element on this page that means it's not a valid video page. But in some rare cases, the
-  #   # original page may be down or unreachable for internet interruption or other network issues.
-  #   # So I decide to let the script continue to execute because this script is mainly focused on
-  #   # recording streams.
-
-  #   # exit 1
-  # fi
-
   # Second check: use `youtube-dl` to check live state
   # NOTE: please avoid adding additional paths in the -o (template) option, it doesn't work well
   # and conflicts with my custom directory setup!
@@ -659,7 +610,7 @@ function func_check_state() {
       if [ "$_youtube_dl_address_param" ]; then
         __info "using address: ${_youtube_dl_address_param##* }"
       fi
-      METADATA=`youtube-dl --ignore-config --no-playlist --playlist-items 0 \
+      METADATA=`youtube-dl --ignore-config --no-playlist --playlist-items 0 --cookies "/cookies.txt" \
         --skip-download --print-json --referer 'https://www.youtube.com/feed/subscriptions' \
         -o '%(upload_date)s %(title)s (%(id)s).%(ext)s' \
         ${_youtube_dl_address_param} \
@@ -1091,36 +1042,12 @@ function func_prepare_dir() {
   [ -d "$_dir" ] || mkdir -p "$_dir"
 }
 
-function func_create_file_name() {
-  # Output $file_base_name.X if $file_base_name$EXTENSION exists.
-  # prevents the 6hr overwrite issue.
-
-  local file_base_name="${1:-$FILENAME}"
-  local output_dir="${2:-$OUTPUT_BASE}"
-
-  if [ -f "$output_dir/${file_base_name}${EXTENSION}" ] || \
-     [ -f "$output_dir/${file_base_name}.mp4" ] || \
-     [ -f "$output_dir/${file_base_name}.log" ] || \
-     [ -f "$output_dir/${file_base_name}.jpg" ] || \
-     [ -f "$output_dir/${file_base_name}.finished" ]
-  then
-    local -i NUM_POSTFIX=1
-    while [ -f "$output_dir/${file_base_name}.${NUM_POSTFIX}${EXTENSION}" ]; do
-      let NUM_POSTFIX+=1
-    done
-    echo "${file_base_name}.${NUM_POSTFIX}"
-  else
-    echo $file_base_name
-  fi
-}
-
 function func_finalize_vars() {
   # Output preffix dir (without user base dir)
   # Also I replace slash with underscores here to avoid nesting directories
   # i.e.
   # 天宮 こころ / Kokoro Amamiya 【にじさんじ所属】 will become:
   # 天宮 こころ／Kokoro Amamiya 【にじさんじ所属】
-  EXTENSION=".ts"
   FILENAME_BASE=$(echo "$UPLOADER" | sed "s/\//／/" | sed "s/ ／ /／/")
 
   # Output base without filename
@@ -1134,7 +1061,6 @@ function func_finalize_vars() {
   fi
 
   # Full output dir
-  FILENAME=$(func_create_file_name "$FILENAME" "$OUTPUT_BASE")
   OUTPUT_PATH="$OUTPUT_BASE/$FILENAME"
 
   # Write prettified JSON metadata to file
@@ -1205,39 +1131,33 @@ function func_download_youtube() {
   __info "Logging: tail -f \"$OUTPUT_PATH.log\""
 
   if [ "$CONTENT_STATE" == "live" ]; then
-    streamlink \
-      --force \
-      --hls-live-restart \
-      --hls-segment-threads 10 \
-      --hls-segment-timeout 10 \
-      --hls-segment-attempts 10 \
-      --hls-segment-ignore-names preloading \
-      --hls-playlist-reload-attempts 30 \
-      --hls-timeout 90 \
-      --ringbuffer-size 256M \
-      --loglevel trace \
-      -o "${OUTPUT_PATH}${EXTENSION}" \
-      "${WEBPAGE_URL}" best >> "$OUTPUT_PATH.log" 2>&1
+    # streamlink \
+    #   --force \
+    #   --hls-live-restart \
+    #   --hls-segment-threads 10 \
+    #   --hls-segment-timeout 10 \
+    #   --hls-segment-attempts 10 \
+    #   --hls-segment-ignore-names preloading \
+    #   --hls-playlist-reload-attempts 30 \
+    #   --hls-timeout 90 \
+    #   --ringbuffer-size 256M \
+    #   --loglevel trace \
+    #   -o "${OUTPUT_PATH}${EXTENSION}" \
+    #   "${WEBPAGE_URL}" best >> "$OUTPUT_PATH.log" 2>&1
+    youtube-dl \
+      --ignore-config \
+      --cookies "/cookies.txt" \
+      -o "${OUTPUT_PATH}.%(ext)s" \
+      "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
   elif [ "$CONTENT_STATE" == "video" ]; then
     if [ "$DL_TYPE" == "playlist" ]; then
-      # TODO: You have to loop over all the videos to add metadata and thumbnail manually.
-      # Or you can add the following parameters to handle it using youtube-dl automatically:
-      #   --embed-thumbnail # requires AtomicParsley
-      #   --add-metadata
       youtube-dl \
         --ignore-config \
         --download-archive archive.txt \
-        --embed-thumbnail \
-        --add-metadata \
         --external-downloader aria2c \
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
-        -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \
-        --write-auto-sub \
-        --write-sub \
-        --sub-lang en,zh-Hans,zh-Hant,ja \
-        --sub-format best \
-        --embed-subs \
         --retries 30 \
+        --cookies "/cookies.txt" \
         -o "${OUTPUT_BASE}/%(upload_date)s %(title)s (%(id)s).%(ext)s" \
         "${WEBPAGE_URL}"
     else
@@ -1245,12 +1165,8 @@ function func_download_youtube() {
         --ignore-config \
         --external-downloader aria2c \
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
-        -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \
-        --write-auto-sub \
-        --write-sub \
-        --sub-lang en,zh-Hans,zh-Hant,ja \
-        --sub-format best \
         --retries 30 \
+        --cookies "/cookies.txt" \
         -o "${OUTPUT_BASE}/%(upload_date)s %(title)s (%(id)s).%(ext)s" \
         "${WEBPAGE_URL}"
     fi
@@ -1266,16 +1182,16 @@ function func_download_bilibili() {
 function func_finalize_download() {
   __info "Stop downloading"
 
-  if [ "$CONTENT_STATE" == "live" ]; then
-    # Convert from TS to MP4 (will override existing with -y option)
-    __info "Converting to MP4"
-    ffmpeg -i "${OUTPUT_PATH}${EXTENSION}" -y \
-      -codec copy \
-      "$OUTPUT_PATH.mp4" >> "$OUTPUT_PATH.log" 2>&1
+  # if [ "$CONTENT_STATE" == "live" ]; then
+  #   # Convert from TS to MP4 (will override existing with -y option)
+  #   __info "Converting to MP4"
+  #   ffmpeg -i "${OUTPUT_PATH}${EXTENSION}" -y \
+  #     -codec copy \
+  #     "$OUTPUT_PATH.mp4" >> "$OUTPUT_PATH.log" 2>&1
 
-    # Remove original TS file
-    rm -f "${OUTPUT_PATH}${EXTENSION}"
-  fi
+  #   # Remove original TS file
+  #   rm -f "${OUTPUT_PATH}${EXTENSION}"
+  # fi
 
   if [ ! "$SKIP_METADATA" ]; then
     __info "Trying to write metadata and artwork"
