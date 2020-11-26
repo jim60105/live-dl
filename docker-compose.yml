@@ -3,6 +3,7 @@ version: '3.7'
 services:
   livedl:
     build: ./live-dl
+    image: live-dl
     restart: always
     volumes:
       - ../YoutubeRecordings:/youtube-dl

@@ -26,6 +26,7 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 COPY . /usr/src/app
+COPY cookies.txt /cookies.txt
 RUN chmod a+x /usr/src/app/live-dl \
 	&& chmod +x /usr/src/app/init.sh
 
