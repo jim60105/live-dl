@@ -131,7 +131,7 @@ def fetch_metadata(url):
     stdout = io.StringIO()
     stderr = io.StringIO()
     info = None
-    with youtube_dl.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
+    with youtube_dl.YoutubeDL({'extract_flat': 'in_playlist', 'cookiefile': '/cookies.txt'}) as ydl:
         ydl.params['extract_flat'] = 'in_playlist'
         return ydl.extract_info(url, download=False)
 

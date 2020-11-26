@@ -3,8 +3,8 @@ app_defaults = {
     'YDL_EXTRACT_AUDIO_FORMAT': None,
     'YDL_EXTRACT_AUDIO_QUALITY': '192',
     'YDL_RECODE_VIDEO_FORMAT': None,
-    'YDL_OUTPUT_TEMPLATE': '/youtube-dl/%(title)s [%(id)s].%(ext)s',
-    'YDL_OUTPUT_TEMPLATE_PLAYLIST': '/youtube-dl/%(playlist_title)s/%(title)s [%(id)s].%(ext)s',
+    'YDL_OUTPUT_TEMPLATE': '/youtube-dl/%(upload_date)s %(title)s (%(id)s).%(ext)s',
+    'YDL_OUTPUT_TEMPLATE_PLAYLIST': '/youtube-dl/%(playlist_title)s/%(upload_date)s %(title)s (%(id)s).%(ext)s',
     'YDL_ARCHIVE_FILE': None,
     'YDL_SERVER_HOST': '0.0.0.0',
     'YDL_SERVER_PORT': 8080,
@@ -17,6 +17,7 @@ app_defaults = {
         'ignoreerrors': True,
         'embedthumbnail': True,
         'addmetadata': True,
-        'cookiefile': '/cookies.txt'
+        'cookiefile': '/cookies.txt',
+        'merge_output_format': 'mp4'
         },
 }

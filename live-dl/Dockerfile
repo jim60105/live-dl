@@ -19,7 +19,7 @@ RUN apk add --no-cache \
 RUN pip3 install yq
 
 RUN apk add gcc musl-dev --no-cache \
-	&& pip install streamlink bottle youtube-dl \
+	&& pip install bottle youtube-dl \
 	&& apk del gcc musl-dev --no-cache
 
 RUN mkdir -p /usr/src/app
@@ -27,10 +27,12 @@ WORKDIR /usr/src/app
 
 COPY . /usr/src/app
 RUN chmod a+x /usr/src/app/live-dl \
-	&& chmod +x /usr/src/app/autoscript.sh
+	&& chmod +x /usr/src/app/init.sh
+
+RUN /usr/src/app/init.sh
 
 EXPOSE 8080
 
 VOLUME ["/youtube-dl"]
 
-CMD [ "/usr/src/app/autoscript.sh" ]
+ENTRYPOINT [ "./live-dl" ]

@@ -38,11 +38,9 @@ nohup /bin/bash ./live-dl {{Youtube URL}} &>/youtube-dl/logs/live-dl-{{Channel N
 正式版有申請次數上限，務必在測試正常、最後上線前再移除
 
 # 下載會員限定影片
-youtube-dl支援以cookie的方式登入，可以手動下載會限影片\
-目前會限直播尚無法直播中下載，只能事後下載，也沒有自動下載功能\
-> 因為直播下載是以streamlinks實現(包括一般直播和會限直播)，而其cookie格式和youtube-dl用的不相同\
-> TODO有兩個方向: 將cookie格式轉換，或是改用youtube-dl\
-> 另外，youtube-dl的帳密功能**目前確定是壞的**
+youtube-dl支援以cookie的方式登入，可以下載會限影片
+> youtube-dl的帳密功能**目前確定是壞的**，只能以cookies方式登入
+> 此cookies file包含了你的Youtube登入授權，請務必妥善保管
 * 安裝瀏覧器擴充功能，以匯出Netscape HTTP Cookie File
     * Chrome: [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid)
     * Firefox: [cookies.txt](https://addons.mozilla.org/zh-TW/firefox/addon/cookies-txt/)

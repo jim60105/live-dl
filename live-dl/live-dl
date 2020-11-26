@@ -15,16 +15,8 @@
 # - exiv2
 # - ffmpeg
 # - jq
-# - streamlink
 # - youtube-dl
 # - yq (python-yq)
-#
-
-#
-# Changelog
-#
-# Sep 23, 2019
-# - First release
 #
 
 #
@@ -44,14 +36,14 @@
 # - [x] channel name mapping
 # - [x] download base dir support
 # - [ ] get channel avatar
-# - [ ] upcoming streams detection
+# - [x] upcoming streams detection
 # - [ ] keyword filter
 # - [ ] metadata overriding mode
 # - [x] summary output for uploading
 # - [x] recording summary
 # - [x] embed cover
 # - [x] add hostname to output
-# - [ ] dockerize this script
+# - [x] dockerize this script
 # - [ ] bilibili live support
 # - [ ] qq notification
 # - [x] rewrite is_live detection logic
@@ -99,7 +91,7 @@ __convert_seconds() {
 
 # Set the current working directory to the directory of this script
 # http://stackoverflow.com/a/17744637/412385
-cd ${0%/*}
+# cd ${0%/*}
 
 # Prepare options
 POSITIONAL=()
@@ -120,10 +112,6 @@ while [ $# -gt 0 ]; do
     -i|--interval)
       PARAM_INTERVAL="$2"
       shift
-      shift
-      ;;
-    --init)
-      PARAM_INIT_SCRIPT=true
       shift
       ;;
     --debug)
@@ -183,154 +171,6 @@ done
 
 # restore positional parameters
 set -- "${POSITIONAL[@]}"
-
-# Install repo for CentOS/RHEL
-function func_add_repo_rhel() {
-  rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
-  rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
-}
-
-# Check dependencies
-function func_check_deps() {
-  __info "Checking dependencies..."
-
-  if command -v ffmpeg >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): $(ffmpeg -version | head -n 1)"
-  else
-    __info "FFmpeg not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      if [ -f /etc/redhat-release ]; then
-        yum install epel-release -y
-        func_add_repo_rhel
-        yum install ffmpeg -y
-      fi
-      if [ -f /etc/lsb-release ]; then
-        apt-get install ffmpeg -y
-      fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install ffmpeg
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  if command -v youtube-dl >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): youtube-dl $(youtube-dl --version | head -n 1)"
-  else
-    __info "youtube-dl not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-      chmod a+rx /usr/local/bin/youtube-dl
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install ffmpeg
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  if command -v jq >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): $(jq --version | head -n 1)"
-  else
-    __info "jq not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      if [ -f /etc/redhat-release ]; then
-        yum install epel-release -y
-        yum install jq -y
-      fi
-      if [ -f /etc/lsb-release ]; then
-        apt-get install jq -y
-      fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install jq
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  if command -v yq >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): $(yq --version | head -n 1)"
-  else
-    __info "yq not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      if [ -f /etc/redhat-release ]; then
-        pip install yq
-      fi
-      if [ -f /etc/lsb-release ]; then
-        apt install python-pip
-        pip install yq
-      fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install python-yq
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  if command -v exiv2 >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): $(exiv2 --version | head -n 1)"
-  else
-    __info "exiv2 not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      if [ -f /etc/redhat-release ]; then
-        yum install exiv2 -y
-      fi
-      if [ -f /etc/lsb-release ]; then
-        apt-get install exiv2 -y
-      fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install exiv2
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  if command -v aria2c >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): $(aria2c -v | head -n 1)"
-  else
-    __info "aria2 not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      if [ -f /etc/redhat-release ]; then
-        yum install epel-release -y
-        yum install aria2 -y
-      fi
-      if [ -f /etc/lsb-release ]; then
-        apt-get install aria2 -y
-      fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install aria2
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  if command -v streamlink >/dev/null 2>&1 ; then
-    __info "$(__green "Found"): $(streamlink --version | head -n 1)"
-  else
-    __info "streamlink not found, trying to install..."
-    if [ "$OSTYPE" == "linux-gnu" ]; then
-      if [ -f /etc/redhat-release ]; then
-        pip install streamlink
-      fi
-      if [ -f /etc/lsb-release ]; then
-        add-apt-repository ppa:nilarimogard/webupd8
-        apt install streamlink
-      fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      brew install streamlink
-    else
-      __info "No platform/architecture supported, please install it manually."
-    fi
-  fi
-
-  # Check if we need to create alias
-  if [ ! "$SKIP_ALIAS" ]; then
-    __info "Creating alias..."
-    _profile="$(func_detect_profile)"
-    _cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-    _alias="alias live-dl='$_cwd/live-dl'"
-    grep -qxF "$_alias" "$_profile" || echo "$_alias" >> "$_profile"
-  fi
-}
 
 function func_create_url() {
   # Create correct URL/URI based on user input
@@ -939,46 +779,6 @@ function func_send_telegram() {
   fi
 }
 
-# Detect profile file if not specified as environment variable
-# Borrowed from acme.sh
-function func_detect_profile() {
-  if [ -n "$PROFILE" -a -f "$PROFILE" ]; then
-    echo "$PROFILE"
-    return
-  fi
-
-  DETECTED_PROFILE=''
-  SHELLTYPE="$(basename "/$SHELL")"
-
-  if [ "$SHELLTYPE" = "bash" ]; then
-    if [ -f "$HOME/.bashrc" ]; then
-      DETECTED_PROFILE="$HOME/.bashrc"
-    elif [ -f "$HOME/.bash_profile" ]; then
-      DETECTED_PROFILE="$HOME/.bash_profile"
-    fi
-  elif [ "$SHELLTYPE" = "zsh" ]; then
-    DETECTED_PROFILE="$HOME/.zshrc"
-  fi
-
-  if [ -z "$DETECTED_PROFILE" ]; then
-    if [ -f "$HOME/.profile" ]; then
-      DETECTED_PROFILE="$HOME/.profile"
-    elif [ -f "$HOME/.bashrc" ]; then
-      DETECTED_PROFILE="$HOME/.bashrc"
-    elif [ -f "$HOME/.bash_profile" ]; then
-      DETECTED_PROFILE="$HOME/.bash_profile"
-    elif [ -f "$HOME/.zshrc" ]; then
-      DETECTED_PROFILE="$HOME/.zshrc"
-    fi
-  fi
-
-  if [ -z "$DETECTED_PROFILE" ]; then
-    DETECTED_PROFILE="$HOME/.bashrc"
-    touch "$DETECTED_PROFILE"
-  fi
-
-  echo "$DETECTED_PROFILE"
-}
 
 function func_process_youtube_metadata() {
   # Extract video info from JSON
@@ -1133,26 +933,15 @@ function func_download_youtube() {
   __info "Start downloading $FILENAME"
 
   # Log tail inspired by https://github.com/printempw/live-stream-recorder
-  __info "Logging: tail -f \"$OUTPUT_PATH.log\""
+  # __info "Logging: tail -f \"$OUTPUT_PATH.log\""
 
   if [ "$CONTENT_STATE" == "live" ]; then
-    # streamlink \
-    #   --force \
-    #   --hls-live-restart \
-    #   --hls-segment-threads 10 \
-    #   --hls-segment-timeout 10 \
-    #   --hls-segment-attempts 10 \
-    #   --hls-segment-ignore-names preloading \
-    #   --hls-playlist-reload-attempts 30 \
-    #   --hls-timeout 90 \
-    #   --ringbuffer-size 256M \
-    #   --loglevel trace \
-    #   -o "${OUTPUT_PATH}${EXTENSION}" \
-    #   "${WEBPAGE_URL}" best >> "$OUTPUT_PATH.log" 2>&1
     youtube-dl \
       --ignore-config \
+      --retries 30 \
       --cookies "/cookies.txt" \
-      -o "${OUTPUT_PATH}.%(ext)s" \
+      --merge-output-format mp4 \
+      -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
       "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
   elif [ "$CONTENT_STATE" == "video" ]; then
     if [ "$DL_TYPE" == "playlist" ]; then
@@ -1163,8 +952,9 @@ function func_download_youtube() {
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
         --retries 30 \
         --cookies "/cookies.txt" \
-        -o "${OUTPUT_BASE}/%(upload_date)s %(title)s (%(id)s).%(ext)s" \
-        "${WEBPAGE_URL}"
+        --merge-output-format mp4 \
+        -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+        "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
     else
       youtube-dl \
         --ignore-config \
@@ -1172,8 +962,9 @@ function func_download_youtube() {
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
         --retries 30 \
         --cookies "/cookies.txt" \
-        -o "${OUTPUT_BASE}/%(upload_date)s %(title)s (%(id)s).%(ext)s" \
-        "${WEBPAGE_URL}"
+        --merge-output-format mp4 \
+        -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+        "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
     fi
   else
     __info "Not a valid URL, skippping"
@@ -1186,17 +977,6 @@ function func_download_bilibili() {
 
 function func_finalize_download() {
   __info "Stop downloading"
-
-  # if [ "$CONTENT_STATE" == "live" ]; then
-  #   # Convert from TS to MP4 (will override existing with -y option)
-  #   __info "Converting to MP4"
-  #   ffmpeg -i "${OUTPUT_PATH}${EXTENSION}" -y \
-  #     -codec copy \
-  #     "$OUTPUT_PATH.mp4" >> "$OUTPUT_PATH.log" 2>&1
-
-  #   # Remove original TS file
-  #   rm -f "${OUTPUT_PATH}${EXTENSION}"
-  # fi
 
   if [ ! "$SKIP_METADATA" ]; then
     __info "Trying to write metadata and artwork"
@@ -1261,7 +1041,7 @@ Path:      $HOSTNAME:$OUTPUT_PATH.mp4
 " && echo -e "\n$FILE_SUMMARY"
   else
     FILE_SUMMARY="File summary not available due to missing files"
-    __info "$(__yellow "File summary not available due to missing files.")"
+    __info "File summary not available due to missing files."
   fi
 
   # Trim additional whitespace, used by email body
@@ -1290,18 +1070,9 @@ function func_callback() {
 # Executes
 #
 
-# Init scripts with `--init` specified
-INIT_SCRIPT="${PARAM_INIT_SCRIPT:-"false"}"
-if [ "$INIT_SCRIPT" == "true" ]; then
-  func_check_deps
-  exit 0
-fi
-
 # Print usage if no URL passed
 if [ ! -n "$1" ]; then
   echo "Usage: $0 url [options]
-
-Run $0 --init to initialize this script and download required dependencies.
 
 Examples:
   Monitor specific channel, download stream when channel goes live:

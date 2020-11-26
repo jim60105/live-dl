@@ -8,11 +8,13 @@ services:
       - ../YoutubeRecordings:/youtube-dl
       - ./Auto:/Auto
       - ./cookies.txt:/cookies.txt  # This cannot be achieved with Docker secrets, because the cookies file must be writable.
+      - ./config.yml:/usr/src/app/config.yml:ro
     env_file:
       - .env
     environment:
       - LETSENCRYPT_HOST=${HOST}
       - VIRTUAL_HOST=${HOST}
+    entrypoint: /usr/src/app/startServer.sh
     networks:
       - proxy-tier
 
