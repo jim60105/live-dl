@@ -6,6 +6,7 @@ services:
     restart: always
     volumes:
       - ../YoutubeRecordings:/youtube-dl
+      - ./Auto:/Auto
       - ./cookies.txt:/cookies.txt  # This cannot be achieved with Docker secrets, because the cookies file must be writable.
     env_file:
       - .env

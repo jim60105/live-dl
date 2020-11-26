@@ -1,5 +1,6 @@
 #!/bin/bash
-find /usr/src/app/Auto/ -maxdepth 1 -type f -exec bash {} \;
+./live-dl --init
+find /Auto/ -maxdepth 1 -type f -exec bash {} \;
 
 python -u /usr/src/app/youtube-dl-server.py
 
