@@ -11,3 +11,8 @@ ydl_options:  # youtube-dl options
   cache-dir: '/usr/src/app/ydl_server/.cache' # youtube-dl cache directory
   ignore-errors: True # instruct youtube-dl to skip errors
   age-limit: 6 # minimal age requirement / parental control setting
+  add-metadata: True
+  cookies: '/cookies.txt'
+  merge-output-format: 'mp4'
+
+
