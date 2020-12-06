@@ -10,6 +10,7 @@ services:
       - ./Auto:/Auto
       - ./cookies.txt:/cookies.txt  # This cannot be achieved with Docker secrets, because the cookies file must be writable.
       - ./config.yml:/usr/src/app/config.yml:ro
+      # - ./download_again.sh:/usr/src/app/callback.sh  # Uncomment this line if you need the DownloadAgain feature.
     env_file:
       - .env
     environment:
