@@ -31,7 +31,7 @@ jobs:
           submodules: true 
 
       - name: Build image
-        run: docker build live-dl --tag $IMAGE_NAME
+        run: docker build . --tag $IMAGE_NAME
 
       #https://medium.com/cooking-with-azure/publish-containers-to-github-container-registry-with-github-actions-4e39700ae14c
       - name: Log into GitHub Container Registry
