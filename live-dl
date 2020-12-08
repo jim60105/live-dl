@@ -91,7 +91,7 @@ __convert_seconds() {
 
 # Set the current working directory to the directory of this script
 # http://stackoverflow.com/a/17744637/412385
-cd ${0%/*}
+# cd ${0%/*}
 
 # Prepare options
 POSITIONAL=()
@@ -320,7 +320,7 @@ function func_check_state() {
   fi
 
   # Passing useragent causes youtube to return the content to one line. Then grep died.
-  local _body=$(curl $address_param -b /cookies.txt -s "$_url")
+  local _body=$(curl $address_param -b cookies.txt -s "$_url")
 
   # Extract metadata from fetched page
   METADATA_CURL_RAW=`echo "$_body" | grep 'ytInitialPlayerResponse' | head -1`
@@ -450,7 +450,7 @@ function func_check_state() {
       if [ "$_youtube_dl_address_param" ]; then
         __info "using address: ${_youtube_dl_address_param##* }"
       fi
-      METADATA=`youtube-dl --ignore-config --no-playlist --playlist-items 0 --cookies "/cookies.txt" \
+      METADATA=`youtube-dl --ignore-config --no-playlist --playlist-items 0 --cookies "cookies.txt" \
         --skip-download --print-json --referer 'https://www.youtube.com/feed/subscriptions' \
         -o '%(upload_date)s %(title)s (%(id)s).%(ext)s' \
         ${_youtube_dl_address_param} \
@@ -939,7 +939,7 @@ function func_download_youtube() {
     youtube-dl \
       --ignore-config \
       --retries 30 \
-      --cookies "/cookies.txt" \
+      --cookies "cookies.txt" \
       --merge-output-format mp4 \
       -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
       "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
@@ -957,7 +957,7 @@ function func_download_youtube() {
         --external-downloader aria2c \
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
         --retries 30 \
-        --cookies "/cookies.txt" \
+        --cookies "cookies.txt" \
         --merge-output-format mp4 \
         -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
         "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
@@ -967,7 +967,7 @@ function func_download_youtube() {
         --external-downloader aria2c \
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
         --retries 30 \
-        --cookies "/cookies.txt" \
+        --cookies "cookies.txt" \
         --merge-output-format mp4 \
         -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
         "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1

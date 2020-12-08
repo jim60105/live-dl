@@ -22,10 +22,11 @@ RUN pip install --no-cache-dir youtube_dl
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY ./c* ./
 COPY ./init.sh .
 COPY ./live-dl .
-COPY ./cookies.txt /cookies.txt
+COPY ./config.yml .
+COPY ./callback.sh .
+COPY ./cookies.txt .
 RUN chmod a+x live-dl \
   && chmod +x init.sh \
   && ./init.sh
