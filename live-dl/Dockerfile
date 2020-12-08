@@ -31,7 +31,11 @@ COPY ./youtube-dl-server/youtube-dl-server.py .
 
 RUN bash -c "apk add --no-cache wget && chmod +x ./bootstrap.sh && ./bootstrap.sh && apk del wget"
 
-COPY ./* ./
+COPY ./c* ./
+COPY ./init.sh .
+COPY ./startServer.sh .
+COPY ./live-dl .
+COPY ./cookies.txt /cookies.txt
 RUN chmod a+x live-dl \
   && chmod +x init.sh \
   && ./init.sh

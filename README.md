@@ -32,8 +32,9 @@ cookies file之相關說明請見文末
 WWW\
 │\
 nginx Server (Reverse Proxy) (SSL證書申請、Renew)\
-└ live-dl (直播錄影機，提供對外WebUI)\
- 　└ Jobber (Cron) (定時檢查磁碟使用率，在高於設定之百分比時，自動由舊起刪除錄影) 
+├ Jobber (Cron) (定時檢查磁碟使用率，在高於設定之百分比時，自動由舊起刪除錄影) 
+└ live-dl (直播監控錄影機)\
+  └youtube-dl-server (WebUI)
 
 ## 說明
 * 錄影和下載會儲存在主機的 `../YoutubeRecordings/` 之下
@@ -69,3 +70,22 @@ youtube-dl支援以cookie的方式登入，可以下載會限影片
 * 以擴充功能匯出`youtube.com`網域的所有cookie
 * 將匯出之cookie檔案重命名為`cookies.txt`
 * 取代專案目錄下的cookies.txt檔 / 用於文首的volume bind
+
+## 錄影完成Callback
+如果需要在下載完成後回呼，請修改 docker-compose.yml，將回呼腳本bind至livedl之下的/usr/src/app/callback.sh
+> 本專案提供的 download_again.sh ，能在下載完成後等待一分鐘，再下載第二次\
+> (由於串流中錄影容易有漏秒，所以在「直播結束後至Youtube版權砲前」再下載一次)
+
+### callback.sh傳入之參數:
+```
+__info "Calling callback function..."
+local cmd=( "$CALLBACK_EXEC" "${OUTPUT_PATH}.mp4" "$BASE_DIR/" "$VIDEO_ID" "$FULLTITLE" "$UPLOADER" "$UPLOAD_DATE" )
+nohup "${cmd[@]}" &>> "$OUTPUT_PATH.log" &
+```
+- 產出檔案的完整路徑
+- 產笜檔案之所在資料夾
+- 影片id
+- 影片標題
+- 影片上傳者
+- 上傳日期
+

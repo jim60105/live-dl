@@ -2,15 +2,16 @@ version: '3.7'
 
 services:
   livedl:
-    build: ./live-dl
-    image: live-dl
+    # build: ./live-dl
+    # image: live-dl
+    image: jim60105/live-dl
     restart: always
     volumes:
       - ../YoutubeRecordings:/youtube-dl
       - ./Auto:/Auto
       - ./cookies.txt:/cookies.txt  # This cannot be achieved with Docker secrets, because the cookies file must be writable.
       - ./config.yml:/usr/src/app/config.yml:ro
-      # - ./download_again.sh:/usr/src/app/callback.sh  # Uncomment this line if you need the DownloadAgain feature.
+      # - ./download_again.sh:/usr/src/app/callback.sh:ro  # If necessary, bind the callback script to this location.
     env_file:
       - .env
     environment:
