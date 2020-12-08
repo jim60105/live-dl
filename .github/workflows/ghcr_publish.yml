@@ -4,11 +4,11 @@ name: ghcr_publish
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the myEdit branch
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ myEdit ]
+    branches: [ master ]
   pull_request:
-    branches: [ myEdit ]
+    branches: [ master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -52,7 +52,7 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "myEdit" ] && VERSION=latest
+          [ "$VERSION" == "master" ] && VERSION=latest
 
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
