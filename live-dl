@@ -43,7 +43,7 @@
 # - [x] recording summary
 # - [x] embed cover
 # - [x] add hostname to output
-# - [x] dockerize this script
+# - [ ] dockerize this script
 # - [ ] bilibili live support
 # - [ ] qq notification
 # - [x] rewrite is_live detection logic
@@ -91,7 +91,7 @@ __convert_seconds() {
 
 # Set the current working directory to the directory of this script
 # http://stackoverflow.com/a/17744637/412385
-# cd ${0%/*}
+cd ${0%/*}
 
 # Prepare options
 POSITIONAL=()
@@ -933,7 +933,7 @@ function func_download_youtube() {
   __info "Start downloading $FILENAME"
 
   # Log tail inspired by https://github.com/printempw/live-stream-recorder
-  # __info "Logging: tail -f \"$OUTPUT_PATH.log\""
+  __info "Logging: tail -f \"$OUTPUT_PATH.log\""
 
   if [ "$CONTENT_STATE" == "live" ]; then
     youtube-dl \
@@ -945,9 +945,15 @@ function func_download_youtube() {
       "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
   elif [ "$CONTENT_STATE" == "video" ]; then
     if [ "$DL_TYPE" == "playlist" ]; then
+      # TODO: You have to loop over all the videos to add metadata and thumbnail manually.
+      # Or you can add the following parameters to handle it using youtube-dl automatically:
+      #   --embed-thumbnail # requires AtomicParsley
+      #   --add-metadata
       youtube-dl \
         --ignore-config \
         --download-archive archive.txt \
+        --embed-thumbnail \
+        --add-metadata \
         --external-downloader aria2c \
         --external-downloader-args '-j 16 -s 16 -x 16 -k 1M --retry-wait 10 --max-tries 10' \
         --retries 30 \
@@ -991,6 +997,7 @@ function func_finalize_download() {
         -metadata date="$UPLOAD_DATE" \
         -metadata description="$DESCRIPTION" \
         -metadata comment="$DESCRIPTION" \
+        -movflags faststart \
         "$OUTPUT_PATH-metadata.mp4" >> "$OUTPUT_PATH.log" 2>&1
       rm -f "$OUTPUT_PATH.mp4" && mv "$OUTPUT_PATH-metadata.mp4" "$OUTPUT_PATH.mp4"
     else
@@ -1010,6 +1017,7 @@ function func_finalize_download() {
           -map 1 -map 0 \
           -codec copy \
           -disposition:0 attached_pic \
+          -movflags faststart \
           "$OUTPUT_PATH-artwork.mp4" >> "$OUTPUT_PATH.log" 2>&1
         rm -f "$OUTPUT_PATH.mp4" && mv "$OUTPUT_PATH-artwork.mp4" "$OUTPUT_PATH.mp4"
       else
@@ -1041,7 +1049,7 @@ Path:      $HOSTNAME:$OUTPUT_PATH.mp4
 " && echo -e "\n$FILE_SUMMARY"
   else
     FILE_SUMMARY="File summary not available due to missing files"
-    __info "File summary not available due to missing files."
+    __info "$(__yellow "File summary not available due to missing files.")"
   fi
 
   # Trim additional whitespace, used by email body
@@ -1084,14 +1092,10 @@ Examples:
   live-dl https://www.youtube.com/watch?v=S3CAGeeMRvo
   live-dl S3CAGeeMRvo
 
-  Download all uploads from a playlist (unstable):
-  live-dl https://www.youtube.com/playlist?list=UU1opHUrw8rvnsadT-iGp7Cg
-
 Options:
   --mode, -m                  Running mode, default: download, available: metadata, notifier
   --output, -o                Base output directory, default: ~/Downloads
-  --interval, -i              Loop interval, unit: second, default: 10.
-                              Avoid setting this value too low or your IP may get banned by YouTube
+  --interval, -i              Loop interval, unit: second, default: 10
   --skip-alias, -a            Skip creating program alias to your shell profile
   --skip-check, -c            Skip dependency check, default: false
   --skip-convert              Skip converting TS file to MP4
@@ -1305,6 +1309,9 @@ while true; do
     elif [ "$DL_TYPE" == "playlist" ]; then
       __info "Type: YouTube playlist"
 
+      # TODO Loop through the playlist and download videos
+      echo "Playlist mod is not support yet. Exit :("
+      exit 0
     #
     # Type: Unknown
     #
