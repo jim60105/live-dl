@@ -12,8 +12,7 @@ config:
   # - ~/My Videos/Live Recordings
   #
   # All examples above should work
-  output: /youtube-dl/VTuber Recordings
-  # same location with youtube-dl web gui
+  output: ~/Downloads/VTuber Recordings
   interval: 10
   skip_alias: false
   skip_check: false
