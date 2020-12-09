@@ -1,4 +1,5 @@
 # live-dl on Docker
+## 單次下載
 ![demo pic](demo.png)
 ```bash
 docker run --rm
@@ -7,14 +8,29 @@ docker run --rm
     jim60105/live-dl https://www.youtube.com/watch?v=GDOQTShjTQs
 ```
 
-此格式如下
+此格式如下\
+將{{}}填入你的內容，若不需要登入就不用傳入cookies file
 ```bash
 docker run --rm
     -v {{影片儲存資料夾}}:/youtube-dl
     -v {{cookies file，用於登入驗證}}:/usr/src/app/cookies.txt
     jim60105/live-dl {{Youtube網址}}
 ```
-將{{}}填入你的內容，若不需要登入就不要bind上cookies file
+
+## 監視頻道
+傳入channel網址，並以deamon執行\
+可以傳入config設定檔，請參考 [config.yml](config.yml) 建立
+
+```bash
+docker run -d
+    -v D:\YoutubeDownload:/youtube-dl
+    -v D:\YoutubeDownload\config.yml:/usr/src/app/config.yml
+    -v D:\YoutubeDownload\cookies.txt:/usr/src/app/cookies.txt
+    jim60105/live-dl https://www.youtube.com/channel/UCBC7vYFNQoGPupe5NxPG4Bw
+```
+
+## docker-compose
+請參考此專案: [jim60105/docker-live-dl](https://github.com/jim60105/docker-live-dl)
 
 ## 功能
 - URL猜測：此腳本將盡最大努力猜測您傳遞給它的內容，以下URL / URI應該都可以工作:
