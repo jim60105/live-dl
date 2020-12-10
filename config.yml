@@ -24,7 +24,7 @@ config:
   skip_telegram: true
   run_callback: false
   address_pool: false
-  one_time: true
+  one_time: false
   image_proxy: false
   timezone: Asia/Tokyo
   email_provider: ses
