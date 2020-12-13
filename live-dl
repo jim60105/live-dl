@@ -323,7 +323,7 @@ function func_check_state() {
   local _body=$(curl $address_param -b cookies.txt -s "$_url")
 
   # Extract metadata from fetched page
-  METADATA_CURL_RAW=`echo "$_body" | grep 'ytInitialPlayerResponse' | head -1`
+  METADATA_CURL_RAW=`echo "$_body" | grep -o 'var ytInitialPlayerResponse = .*' | head -1`
 
   # NOTE: Oct 25, 2020
   # Recently YouTube changes its page to returns `null` for `ytInitialPlayerResponse` when the
