@@ -942,6 +942,8 @@ function func_download_youtube() {
       --ignore-config \
       --retries 30 \
       --cookies "cookies.txt" \
+      --hls-use-mpegts \
+      --no-part \
       --merge-output-format mp4 \
       -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
       "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
