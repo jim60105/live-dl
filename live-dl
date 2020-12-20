@@ -319,11 +319,11 @@ function func_check_state() {
     __info "using address: ${address_param##* }"
   fi
 
-  # Passing useragent causes youtube to return the content to one line. Then grep died.
-  local _body=$(curl $address_param -b cookies.txt -s "$_url")
+  local _body=$(curl -s --compressed -H "User-Agent: $USER_AGENT" $address_param -b cookies.txt "$_url")
 
   # Extract metadata from fetched page
-  METADATA_CURL_RAW=`echo "$_body" | grep -o 'var ytInitialPlayerResponse = .*' | head -1`
+  # METADATA_CURL_RAW=`echo "$_body" | grep -o 'var ytInitialPlayerResponse = .*' | head -1`
+  METADATA_CURL_RAW=`echo "$_body" | grep -o 'var ytInitialPlayerResponse = .*'`
 
   # NOTE: Oct 25, 2020
   # Recently YouTube changes its page to returns `null` for `ytInitialPlayerResponse` when the
@@ -332,8 +332,10 @@ function func_check_state() {
     METADATA_CURL="{}"
     __debug "ytInitialPlayerResponse returns null"
   else
-    METADATA_CURL=`echo "$METADATA_CURL_RAW" | perl -pe 's/^.*?(\{".*}).*/\1/g' | jq -r .`
+    METADATA_CURL=`echo "$METADATA_CURL_RAW" | perl -pe 's/^.*?(\{".*});var meta.*$/\1/g' | jq -r .`
   fi
+
+  echo $METADATA_CURL
 
   # Check if returns nothing
   if [ ! -z "$METADATA_CURL" ]; then
