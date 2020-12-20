@@ -335,7 +335,7 @@ function func_check_state() {
     METADATA_CURL=`echo "$METADATA_CURL_RAW" | perl -pe 's/^.*?(\{".*});var meta.*$/\1/g' | jq -r .`
   fi
 
-  echo $METADATA_CURL
+  # echo $METADATA_CURL
 
   # Check if returns nothing
   if [ ! -z "$METADATA_CURL" ]; then
