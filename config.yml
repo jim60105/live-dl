@@ -15,7 +15,6 @@ config:
   output: /youtube-dl
   # same location with youtube-dl web gui
   interval: 10
-  skip_alias: false
   skip_check: false
   skip_convert: false
   skip_metadata: false
