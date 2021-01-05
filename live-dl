@@ -118,6 +118,11 @@ while [ $# -gt 0 ]; do
       shift
       shift
       ;;
+    --ytdl-args)
+      PARAM_YTDL_ARGS="$2"
+      shift
+      shift
+      ;;
     --debug)
       PARAM_DEBUG=true
       shift
@@ -983,7 +988,7 @@ function func_download_youtube() {
         --retries 30 \
         --cookies "cookies.txt" \
         --merge-output-format mp4 \
-        -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+        $YTDL_ARGS -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
         "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
     else
       youtube-dl \
@@ -993,7 +998,7 @@ function func_download_youtube() {
         --retries 30 \
         --cookies "cookies.txt" \
         --merge-output-format mp4 \
-        -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+        $YTDL_ARGS -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
         "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
     fi
   else
@@ -1121,6 +1126,7 @@ Options:
   --output, -o                Base output directory, default: ~/Downloads
   --interval, -i              Loop interval, unit: second, default: 10.
                               Avoid setting this value too low or your IP may get banned by YouTube
+  --ytdl-args                 Passing additional options to youtube-dl. options should be quoted
   --skip-check, -c            Skip dependency check, default: false
   --skip-convert              Skip converting TS file to MP4
   --skip-email                Skip sending email notification
@@ -1155,6 +1161,7 @@ CONFIG_MODE=`echo $CONFIG_RAW | jq -r '.config.mode | select(.!=null)'`
 CONFIG_FILTER=`echo $CONFIG_RAW | jq -r '.config.filter | select(.!=null)'`
 CONFIG_BASE_DIR=`echo $CONFIG_RAW | jq -r .config.output | sed -e 's/~/'"$HOME_EXPANDED"'/g'`
 CONFIG_INTERVAL=`echo $CONFIG_RAW | jq -r '.config.interval | select(.!=null)'`
+CONFIG_YTDL_ARGS=`echo $CONFIG_RAW | jq -r '.config.ytdl_args | select(.!=null)'`
 CONFIG_SKIP_CONVERT=`echo $CONFIG_RAW | jq -r '.config.skip_convert | select(.!=null)'`
 CONFIG_SKIP_METADATA=`echo $CONFIG_RAW | jq -r '.config.skip_metadata | select(.!=null)'`
 CONFIG_SKIP_EMAIL=`echo $CONFIG_RAW | jq -r '.config.skip_email | select(.!=null)'`
@@ -1182,6 +1189,7 @@ MODE="${PARAM_MODE:-$CONFIG_MODE}"
 FILTER="${PARAM_FILTER:-$CONFIG_FILTER}"
 BASE_DIR="${_PARAM_BASE_DIR:-$CONFIG_BASE_DIR}"
 INTERVAL="${PARAM_INTERVAL:-$CONFIG_INTERVAL}"
+YTDL_ARGS="${PARAM_YTDL_ARGS:-$CONFIG_YTDL_ARGS}"
 SKIP_CONVERT="${PARAM_SKIP_CONVERT:-$CONFIG_SKIP_CONVERT}"
 SKIP_METADATA="${PARAM_SKIP_METADATA:-$CONFIG_SKIP_METADATA}"
 SKIP_EMAIL="${PARAM_SKIP_EMAIL:-$CONFIG_SKIP_EMAIL}"
