@@ -334,7 +334,12 @@ function func_check_state() {
   #
   # Debug commmand if YouTube changes its HTML structure in the future:
   # $ curl -s --compressed -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" 'https://www.youtube.com/watch?v=j2z06YUbulk' | grep 'ytInitialPlayerResponse' | grep '<script' | grep 'responseContext' | perl -pe 's/^.*?ytInitialPlayerResponse = ({".*]});var .*/\1/g' | jq -r .
-  METADATA_CURL=`echo "$METADATA_CURL_RAW" | perl -pe 's/^.*?ytInitialPlayerResponse = ({".*]});var .*/\1/g' | jq -r .`
+  #
+  # jim60105 2021/1/7:
+  # Original: https://github.com/sparanoid/live-dl/commit/d63f410199ba7a0c54ff08bbace32ec5161309c7#diff-6082bb4ab8ff427f72ac5c3cdedd24585282e49e9254e4bcfd30d09afab635f7R437
+  # The origin code is not works with a cookies file. So I modify perl regex to let it works.
+  # Please note that if no cookie file is passed in, it will not work properly.
+  METADATA_CURL=`echo "$METADATA_CURL_RAW" | perl -pe 's/^.*?ytInitialPlayerResponse = (\{".*});var meta.*/\1/g' | jq -r .`
 
   # Check if returns nothing
   if [ ! -z "$METADATA_CURL" ]; then
