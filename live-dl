@@ -893,7 +893,7 @@ function func_finalize_vars() {
   OUTPUT_BASE="$BASE_DIR/$FILENAME_BASE"
 
   # Apply additional timestamp if file already exists
-  if ([ -f "$OUTPUT_BASE/$FILENAME.ts" ] || [ -f "$OUTPUT_BASE/$FILENAME.mp4" ]); then
+  if [ -f "$OUTPUT_BASE/$FILENAME.mp4" ]; then
     local _time_start=$(date +"%H.%M.%S")
     FILENAME="$FILENAME-$_time_start"
     __info "$(__yellow "Filename already exists, using $FILENAME")"
@@ -1135,7 +1135,6 @@ Options:
                               Avoid setting this value too low or your IP may get banned by YouTube
   --ytdl-args                 Passing additional options to youtube-dl. options should be quoted
   --skip-check, -c            Skip dependency check, default: false
-  --skip-convert              Skip converting TS file to MP4
   --skip-metadata             Skip embedding metadata
   --skip-email                Skip sending email notification
   --skip-slack                Skip sending Slack notification
@@ -1222,7 +1221,7 @@ __info "Skip embedding metadata        : ${SKIP_METADATA}"
 __info "Skip email notification        : ${SKIP_EMAIL}"
 __info "Skip Slack notification        : ${SKIP_SLACK}"
 __info "Skip Telegram notification     : ${SKIP_TELEGRAM}"
-__info "Callback                       : ${CALLBACK}"
+__info "Callback                       : ${CALLBACK} > ${CALLBACK_EXEC}"
 __info "Address Pool                   : ${ADDRESS_POOL}"
 __info "Email provider                 : ${CONFIG_EMAIL_PROVIDER}"
 __info "One-time execution             : ${ONE_TIME}"
@@ -1245,6 +1244,7 @@ while true; do
       break
     elif [ "$CONTENT_STATE" == "video" ]; then
       ONE_TIME="true"
+      __info "One-time execution             : ${ONE_TIME}"
       break
     else
       __debug "Not valid at the moment, continue running"
