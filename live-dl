@@ -1020,7 +1020,7 @@ function func_download_bilibili() {
 function func_finalize_download() {
   __info "Stop downloading"
 
-  if [ ! "$SKIP_METADATA" ]; then
+  if ! "$SKIP_METADATA" ; then
     __info "Trying to write metadata and artwork"
 
     # Write metadata to MP4 (will override existing with -y option)
