@@ -970,9 +970,11 @@ function func_download_youtube() {
   __info "Logging: tail -f \"$OUTPUT_PATH.log\""
 
   if [ "$CONTENT_STATE" == "live" ]; then
+    # Note: The "retries" parameter does not apply to dash and hls, but "fragment-retries" should be used.
+    # https://github.com/ytdl-org/youtube-dl/blob/2021.01.16/youtube_dl/downloader/hls.py#L147-L170
     youtube-dl \
       --ignore-config \
-      --retries 30 \
+      --fragment-retries 30 \
       --cookies "cookies.txt" \
       --hls-use-mpegts \
       --no-part \
