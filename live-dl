@@ -66,25 +66,53 @@ IMAGE_PROXY_BASE="https://experiments.sparanoid.net/imageproxy/"
 
 # Text color helper borrowed from acme.sh
 __green() {
-  printf '\033[1;31;32m%b\033[0m' "$1"
+  if [ "$LOG_COLOR" == "true" ]; then
+    printf '\033[1;31;32m%b\033[0m' "$1"
+    return
+  fi
+  printf -- "%s" "$1"
 }
 
 __yellow() {
-  printf '\033[1;31;33m%b\033[0m' "$1"
+  if [ "$LOG_COLOR" == "true" ]; then
+    printf '\033[1;31;33m%b\033[0m' "$1"
+    return
+  fi
+  printf -- "%s" "$1"
 }
 
 __red() {
-  printf '\033[1;31;40m%b\033[0m' "$1"
+  if [ "$LOG_COLOR" == "true" ]; then
+    printf '\033[1;31;40m%b\033[0m' "$1"
+    return
+  fi
+  printf -- "%s" "$1"
+}
+
+__prefix(){
+  if [ "$LOG_TAG" != "" ]; then
+    printf "[$(date +"%D %T")] [${LOG_TAG}]"
+    return
+  fi
+  printf "[$(date +"%D %T")]"
+}
+
+__err() {
+  printf "$(__prefix) $(__red "[Error] %s\n")" "$1" >&2
+}
+
+__warn() {
+  printf "$(__prefix) $(__yellow "[Warn] %s\n")" "$1"
 }
 
 __info() {
-  printf "[$(date)] %s\n" "$1"
+  printf "$(__prefix) [Info] %s\n" "$1"
 }
 
 __debug() {
   DEBUG="${PARAM_DEBUG:-"false"}"
   if [ "$DEBUG" == "true" ]; then
-    printf "[$(date)] DEBUG: %s\n" "$1"
+    printf "$(__prefix) [DEBUG] %s\n" "$1"
   fi
 }
 
@@ -169,6 +197,15 @@ while [ $# -gt 0 ]; do
       PARAM_IMAGE_PROXY=true
       shift
       ;;
+    --log-color)
+      PARAM_LOG_COLOR=true
+      shift
+      ;;
+    --log-tag)
+      PARAM_LOG_TAG="$2"
+      shift
+      shift
+      ;;
     *) # other unknown options
       POSITIONAL+=("$1") # save it in an array for later
       shift
@@ -194,31 +231,31 @@ function func_create_url() {
   local _url=$1
 
   if [[ "$_url" =~ "youtube.com" ]]; then
-    __info "YouTube URL detected"
+    __info "$(__green "YouTube URL detected")"
     DL_PLATFORM="YouTube"
 
     if [[ "$_url" =~ "/channel" && "$_url" =~ "/live" ]]; then
-      __info "YouTube channel detected"
+      __info "$(__green "YouTube channel detected")"
       DL_URL="$_url"
       DL_TYPE="channel"
 
     elif [[ "$_url" =~ "/channel" && ! "$_url" =~ "/live" ]]; then
-      __info "YouTube video detected (alt)"
+      __info "$(__green "YouTube video detected (alt)")"
       DL_URL="$_url/live"
       DL_TYPE="channel"
 
     elif [[ "$_url" =~ "/watch"* ]]; then
-      __info "YouTube video detected"
+      __info "$(__green "YouTube video detected")"
       DL_URL="$_url"
       DL_TYPE="video"
 
     elif [[ "$_url" =~ "/playlist"* ]]; then
-      __info "YouTube playlist detected"
+      __info "$(__green "YouTube playlist detected")"
       DL_URL="$_url"
       DL_TYPE="playlist"
 
     else
-      __info "$(__red "Non-supported YouTube URL")"
+      __err "Non-supported YouTube URL"
       exit 1
     fi
 
@@ -229,7 +266,7 @@ function func_create_url() {
 
   else
     if [[ ! "$_url" == "http"* ]]; then
-      __info "$(__yellow "URI detected, guessing... (Use full URL to avoid guessing URL)")"
+      __info "URI detected, guessing... (Use full URL to avoid guessing URL)"
 
       if [[ "$_url" =~ ^([0-9]+)$ ]]; then
         __info "Bilibili room ID detected"
@@ -251,7 +288,7 @@ function func_create_url() {
       fi
 
     else
-      __info "$(__red "Non-supported URL")"
+      __err "Non-supported URL"
       exit 1
     fi
   fi
@@ -417,7 +454,7 @@ function func_check_state() {
           __info "$(__green "Video title matched, mark as downloadable...")"
           CONTENT_STATE="live"
         else
-          __info "$(__yellow "Video title does not match, skipping and continue monitoring...")"
+          __warn "Video title does not match, skipping and continue monitoring..."
           CONTENT_STATE="invalid"
         fi
       else
@@ -433,7 +470,7 @@ function func_check_state() {
 
           # Check if the streamer is streaming privately.
           if [ -z "$STREAMABILITY" ]; then
-            __info "$(__yellow "/live redirects to /, event mode or streaming privately?")"
+            __warn "/live redirects to /, event mode or streaming privately?"
           fi
         else
           CONTENT_STATE="video"
@@ -446,7 +483,7 @@ function func_check_state() {
 
         # Check if upcoming event available
         if [ ! -z "$UPCOMING_TIME" ]; then
-          __info "$(__yellow "Upcoming event detected: $UPCOMING_TIME")"
+          __info "Upcoming event detected: $UPCOMING_TIME"
         fi
       fi
     fi
@@ -454,7 +491,7 @@ function func_check_state() {
     # Print current state for first check
     __debug "Current state for first check: $(__yellow "$CONTENT_STATE")"
   else
-    __info "$(__yellow "Not a valid page, something wrong with your internet connection?")"
+    __warn "Not a valid page"
   fi
 
   # Second check: use `youtube-dl` to check live state
@@ -523,22 +560,22 @@ function func_check_state() {
           __debug "$METADATA"
           if [[ "$METADATA" =~ "This video is unavailable" ]]; then
             # Suppress `video is unavailable` errors since they're common when stream is not live
-            __debug "This video is unavailable, maybe not live at the moment."
+            __warn "This video is unavailable, maybe not live at the moment."
             CONTENT_STATE="unavailable"
           elif [[ "$METADATA" =~ "HTTP Error 404" ]]; then
-            __info "$(__yellow "Not a valid video page (Error 404)!")"
+            __err "Not a valid video page (Error 404)!"
             CONTENT_STATE="not_found"
           elif [[ "$METADATA" =~ "HTTP Error 429" ]]; then
-            __info "$(__yellow "Your IP is limited by YouTube (Error 429)!")"
+            __err "Your IP is limited by YouTube (Error 429)!"
             CONTENT_STATE="too_many_requests"
           else
-            __info "$(__yellow "Unknown metadata")"
+            __err "Unknown metadata"
             __info "$METADATA"
             CONTENT_STATE="invalid"
           fi
         fi
       else
-        __info "$(__yellow "Second check failed, not valid youtube-dl metadata")"
+        __err "Second check failed, not valid youtube-dl metadata"
         CONTENT_STATE="invalid"
       fi
 
@@ -557,7 +594,7 @@ function func_send_email() {
     if [ "$CONFIG_EMAIL_PROVIDER" == "mailgun" ]; then
 
       if [ "$CONFIG_MAILGUN_API" == "key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" ]; then
-        __info "$(__yellow "No Mailgun credentials found, skip sending email notification")"
+        __warn "No Mailgun credentials found, skip sending email notification"
       else
         __info "Sending email notification..."
         curl -s --user "api:$CONFIG_MAILGUN_API" \
@@ -572,7 +609,7 @@ function func_send_email() {
     if [ "$CONFIG_EMAIL_PROVIDER" == "ses" ]; then
 
       if [ "$CONFIG_SES_ACCESS" == "AKxxxxxxxxxxxxxxxxxx" ]; then
-        __info "$(__yellow "No AWS SES credentials found, skip sending email notification")"
+        __warn "No AWS SES credentials found, skip sending email notification"
       else
         __info "Sending email notification..."
         local FROM="Livestream Downloader (live-dl) <live-dl@$CONFIG_SES_DOMAIN>"
@@ -609,7 +646,7 @@ function func_send_slack() {
   if [ "$SKIP_SLACK" != "true" ]; then
 
     if [ "$CONFIG_SLACK_WEBHOOK" == "https://hooks.slack.com/services/" ]; then
-      __info "$(__yellow "No Slack credentials found, skip sending Slack notification")"
+      __warn "No Slack credentials found, skip sending Slack notification"
     else
       __info "Sending Slack notification..."
 
@@ -745,7 +782,7 @@ function func_send_telegram() {
   if [ "$SKIP_TELEGRAM" != "true" ]; then
 
     if [ "$CONFIG_TELEGRAM_BOT" == "000000000:xxxxxxxxx" ]; then
-      __info "$(__yellow "No Telegram credentials found, skip sending Telegram notification")"
+      __warn "No Telegram credentials found, skip sending Telegram notification"
     else
       if [ "$UPLOADER_TG_CHANNEL" ]; then
         __info "Sending Telegram notification..."
@@ -871,7 +908,7 @@ function func_process_channel_mapping() {
     fi
 
   else
-    __info "$(__red "Missing uploader ID!")"
+    __err "Missing uploader ID!"
     exit 1
   fi
 }
@@ -896,7 +933,7 @@ function func_finalize_vars() {
   if [ -f "$OUTPUT_BASE/$FILENAME.mp4" ]; then
     local _time_start=$(date +"%H.%M.%S")
     FILENAME="$FILENAME-$_time_start"
-    __info "$(__yellow "Filename already exists, using $FILENAME")"
+    __warn "Filename already exists, using $FILENAME"
   fi
 
   # Full output dir
@@ -967,7 +1004,7 @@ function func_download_youtube() {
   __info "Start downloading $FILENAME"
 
   # Log tail inspired by https://github.com/printempw/live-stream-recorder
-  __info "Logging: tail -f \"$OUTPUT_PATH.log\""
+  __info "Logging to $OUTPUT_PATH.log"
 
   if [ "$CONTENT_STATE" == "live" ]; then
     # Note: The "retries" parameter does not apply to dash and hls, but "fragment-retries" should be used.
@@ -1038,7 +1075,7 @@ function func_finalize_download() {
         "$OUTPUT_PATH-metadata.mp4" >> "$OUTPUT_PATH.log" 2>&1
       rm -f "$OUTPUT_PATH.mp4" && mv "$OUTPUT_PATH-metadata.mp4" "$OUTPUT_PATH.mp4"
     else
-      __info "$(__yellow "Output file not exists, skip writing metadata.")"
+      __warn "Output file not exists, skip writing metadata."
     fi
 
     # Writing artwork cover
@@ -1057,10 +1094,10 @@ function func_finalize_download() {
           "$OUTPUT_PATH-artwork.mp4" >> "$OUTPUT_PATH.log" 2>&1
         rm -f "$OUTPUT_PATH.mp4" && mv "$OUTPUT_PATH-artwork.mp4" "$OUTPUT_PATH.mp4"
       else
-        __info "$(__yellow "Artwork missing, this is a rare case, please report at my GitHub.")"
+        __warn "Artwork missing."
       fi
     else
-      __info "$(__yellow "Output file not exists, skip embedding artwork.")"
+      __warn "Output file not exists, skip embedding artwork."
     fi
   fi
 
@@ -1085,7 +1122,7 @@ Path:      $HOSTNAME:$OUTPUT_PATH.mp4
 " && echo -e "\n$FILE_SUMMARY"
   else
     FILE_SUMMARY="File summary not available due to missing files"
-    __info "$(__yellow "File summary not available due to missing files.")"
+    __warn "File summary not available due to missing files."
   fi
 
   # Trim additional whitespace, used by email body
@@ -1105,7 +1142,7 @@ function func_callback() {
       local cmd=( "$CALLBACK_EXEC" "${OUTPUT_PATH}.mp4" "$BASE_DIR/" "$VIDEO_ID" "$FULLTITLE" "$UPLOADER" "$UPLOAD_DATE" )
       nohup "${cmd[@]}" &>> "$OUTPUT_PATH.log" &
     else
-      __info "$(__yellow "No callback executable specified.")"
+      __info "No callback executable specified."
     fi
   fi
 }
@@ -1143,13 +1180,15 @@ Options:
   --address-pool [list.txt]   Use multiple addresses for curl to prevent 429 Error          
   --once, -1                  Run only once, default: false
   --debug                     Show debug output (aka. verbose mode), default: false
-  --image-proxy               Enable image proxy for China users, default: false"
+  --image-proxy               Enable image proxy for China users, default: false
+  --log-tag                   Add a tag before each log output
+  --log-color                 Enable color output"
   exit 1
 fi
 
 # Check if we have config.yml
 if ! [ -f config.yml ]; then
-  __info "$(__red "No config.yml, 'cp config.example.yml config.yml' and rerun this script.")"
+  __err "No config.yml, 'cp config.example.yml config.yml' and rerun this script."
   exit 1;
 else
   CONFIG_RAW=`cat config.yml | yq -r .`
@@ -1190,6 +1229,8 @@ CONFIG_TELEGRAM_BOT=`echo $CONFIG_RAW | jq -r '.config.telegram.bot | select(.!=
 CONFIG_TELEGRAM_CHANNEL=`echo $CONFIG_RAW | jq -r '.config.telegram.channel | select(.!=null)'`
 CONFIG_CALLBACK_EXEC=`echo $CONFIG_RAW | jq -r '.config.callback.executable | select(.!=null)'`
 CONFIG_ADDRESS_POOL_FILE=`echo $CONFIG_RAW | jq -r '.config.address_pool_file | select(.!=null)'`
+CONFIG_LOG_TAG=`echo $CONFIG_RAW | jq -r '.config.log.tag | select(.!=null)'`
+CONFIG_LOG_COLOR=`echo $CONFIG_RAW | jq -r '.config.log.color | select(.!=null)'`
 
 MODE="${PARAM_MODE:-$CONFIG_MODE}"
 FILTER="${PARAM_FILTER:-$CONFIG_FILTER}"
@@ -1206,6 +1247,8 @@ ADDRESS_POOL="${PARAM_ADDRESS_POOL:-$CONFIG_ADDRESS_POOL}"
 ADDRESS_POOL_FILE="${PARAM_ADDRESS_POOL_FILE:-$CONFIG_ADDRESS_POOL_FILE}"
 ONE_TIME="${PARAM_ONE_TIME:-$CONFIG_ONE_TIME}"
 IMAGE_PROXY="${PARAM_IMAGE_PROXY:-$CONFIG_IMAGE_PROXY}"
+LOG_TAG="${PARAM_LOG_TAG:-$CONFIG_LOG_TAG}"
+LOG_COLOR="${PARAM_LOG_COLOR:-$CONFIG_LOG_COLOR}"
 URL_INPUT="$1"
 
 if [ "IMAGE_PROXY" != "true" ]; then
@@ -1265,7 +1308,7 @@ while true; do
   #
   if [ "$DL_PLATFORM" == "YouTube" ]; then
     # Print summary
-    echo -e "\n$SUMMARY"
+    # __info "$SUMMARY"
 
     #
     # Type: YouTube channel
@@ -1320,7 +1363,7 @@ while true; do
       # Mode: unknown
       #
       else
-        __info "$(__red "Unknown mode, check your config")"
+        __err "Unknown mode, check your config"
         exit 1
       fi
 
