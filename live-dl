@@ -44,13 +44,11 @@
 # - [ ] get channel avatar
 # - [x] upcoming streams detection
 # - [x] keyword filter
-# - [ ] metadata overriding mode
 # - [x] summary output for uploading
 # - [x] recording summary
 # - [x] embed cover
 # - [x] add hostname to output
 # - [x] dockerize this script
-# - [ ] bilibili live support
 # - [x] rewrite is_live detection logic
 #
 
