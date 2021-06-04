@@ -55,7 +55,7 @@
 #
 # Variables
 #
-USER_AGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36"
+USER_AGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 IMAGE_PROXY_BASE="https://experiments.sparanoid.net/imageproxy/"
 
 #
