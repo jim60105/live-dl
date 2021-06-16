@@ -368,7 +368,7 @@ function func_check_state() {
   local _body=$(curl -s --compressed -H "User-Agent: $USER_AGENT" $address_param -b cookies.txt "$_url")
 
   # Extract metadata from fetched page
-  METADATA_CURL_RAW=`echo "$_body" | grep 'ytInitialPlayerResponse' | grep '<script' | grep 'responseContext'`
+  METADATA_CURL_RAW=`echo "$_body" | grep -a 'ytInitialPlayerResponse' | grep -a '<script' | grep -a 'responseContext'`
 
   # Match only JSON part
   # https://regex101.com/r/QiyZE2/3
