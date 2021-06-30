@@ -1151,6 +1151,8 @@ function func_download_youtube() {
   # Log tail inspired by https://github.com/printempw/live-stream-recorder
   __info "Logging to $OUTPUT_PATH.log"
 
+  OUTPUT_TEMPLATE="${OUTPUT_BASE/\%/%%}/${FILENAME/\%/%%}.%(ext)s"
+
   if [ "$CONTENT_STATE" == "live" ]; then
     # Note: The "retries" parameter does not apply to dash and hls, but "fragment-retries" should be used.
     # https://github.com/ytdl-org/youtube-dl/blob/2021.01.16/youtube_dl/downloader/hls.py#L147-L170
@@ -1161,7 +1163,7 @@ function func_download_youtube() {
       --hls-use-mpegts \
       --no-part \
       --merge-output-format mp4 \
-      -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+      -o "${OUTPUT_TEMPLATE}" \
       "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
   elif [ "$CONTENT_STATE" == "video" ]; then
     if [ "$DL_TYPE" == "playlist" ]; then
@@ -1179,7 +1181,7 @@ function func_download_youtube() {
         --retries 30 \
         --cookies "cookies.txt" \
         --merge-output-format mp4 \
-        $YTDL_ARGS -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+        $YTDL_ARGS -o "${OUTPUT_TEMPLATE}" \
         "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
     else
       youtube-dl \
@@ -1189,7 +1191,7 @@ function func_download_youtube() {
         --retries 30 \
         --cookies "cookies.txt" \
         --merge-output-format mp4 \
-        $YTDL_ARGS -o "${OUTPUT_BASE}/${FILENAME}.%(ext)s" \
+        $YTDL_ARGS -o "${OUTPUT_TEMPLATE}" \
         "${WEBPAGE_URL}" >> "$OUTPUT_PATH.log" 2>&1
     fi
   else
